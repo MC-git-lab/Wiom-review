@@ -15,7 +15,7 @@ type Review = {
   video: string | null;
 };
 
-const SENTIMENT_ORDER: Review["sentiment"][] = ["Negative", "Positive", "Neutral"];
+const SENTIMENT_ORDER: Review["sentiment"][] = ["Positive", "Neutral", "Negative"];
 
 const SENTIMENT_STYLE: Record<
   Review["sentiment"],
