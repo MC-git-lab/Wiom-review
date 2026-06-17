@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1f1023;
+  --wiom-pink: #ec0a7a;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

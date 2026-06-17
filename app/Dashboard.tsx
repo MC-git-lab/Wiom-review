@@ -1,0 +1,310 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Review = {
+  source: string;
+  type: string;
+  author: string;
+  date: string;
+  rating: number | null;
+  sentiment: "Positive" | "Negative" | "Neutral";
+  topic: string;
+  text: string;
+  source_url: string;
+  video: string | null;
+};
+
+const SENTIMENT_ORDER: Review["sentiment"][] = ["Negative", "Positive", "Neutral"];
+
+const SENTIMENT_STYLE: Record<
+  Review["sentiment"],
+  { dot: string; bar: string; badge: string; border: string }
+> = {
+  Negative: {
+    dot: "bg-red-500",
+    bar: "bg-red-500",
+    badge: "bg-red-50 text-red-600 border border-red-200",
+    border: "border-l-4 border-l-red-500",
+  },
+  Positive: {
+    dot: "bg-green-500",
+    bar: "bg-green-500",
+    badge: "bg-green-50 text-green-700 border border-green-200",
+    border: "border-l-4 border-l-green-500",
+  },
+  Neutral: {
+    dot: "bg-gray-300",
+    bar: "bg-gray-300",
+    badge: "bg-white text-gray-500 border border-gray-300",
+    border: "border-l-4 border-l-gray-300",
+  },
+};
+
+const TOPIC_ORDER = [
+  "Speed/connectivity",
+  "Recharge & billing",
+  "Installation",
+  "Customer support",
+  "App bugs",
+  "Other",
+];
+
+export default function Dashboard({ reviews }: { reviews: Review[] }) {
+  const [view, setView] = useState<"sentiment" | "topic">("sentiment");
+  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube">("All");
+
+  const filtered = useMemo(
+    () => reviews.filter((r) => sourceFilter === "All" || r.source === sourceFilter),
+    [reviews, sourceFilter]
+  );
+
+  const bySentiment = useMemo(() => {
+    const map: Record<string, Review[]> = { Negative: [], Positive: [], Neutral: [] };
+    for (const r of filtered) map[r.sentiment].push(r);
+    return map;
+  }, [filtered]);
+
+  const byTopic = useMemo(() => {
+    const map: Record<string, Review[]> = {};
+    for (const t of TOPIC_ORDER) map[t] = [];
+    for (const r of filtered) map[r.topic]?.push(r);
+    return map;
+  }, [filtered]);
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-[#8a5570]">
+        {filtered.length} reviews collected from Play Store and YouTube (verdicts + comments).
+      </p>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-2">
+          <TabButton active={view === "sentiment"} onClick={() => setView("sentiment")}>
+            By Sentiment
+          </TabButton>
+          <TabButton active={view === "topic"} onClick={() => setView("topic")}>
+            By Review Type
+          </TabButton>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-[#b07b94]">Source:</span>
+          {(["All", "Play Store", "YouTube"] as const).map((s) => (
+            <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
+              {s}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
+
+      {view === "sentiment" ? (
+        <SentimentSummary data={bySentiment} />
+      ) : (
+        <TopicSummary data={byTopic} />
+      )}
+
+      {view === "topic" && <SentimentLegend />}
+
+      <div className="space-y-6">
+        {view === "sentiment"
+          ? SENTIMENT_ORDER.map((s) => (
+              <Section
+                key={s}
+                title={s}
+                count={bySentiment[s].length}
+                dotClass={SENTIMENT_STYLE[s].dot}
+                reviews={bySentiment[s]}
+              />
+            ))
+          : TOPIC_ORDER.map((t) => (
+              <Section
+                key={t}
+                title={t}
+                count={byTopic[t].length}
+                dotClass="bg-[#ec0a7a]"
+                reviews={byTopic[t]}
+              />
+            ))}
+      </div>
+    </div>
+  );
+}
+
+function SentimentLegend() {
+  return (
+    <div className="flex items-center gap-4 text-xs text-[#8a5570]">
+      <span className="flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-green-500" /> Positive
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Negative
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full border border-gray-300 bg-white" /> Neutral
+      </span>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+        active
+          ? "bg-[#ec0a7a] text-white"
+          : "bg-white text-[#8a5570] border border-pink-200 hover:border-[#ec0a7a]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+        active
+          ? "bg-pink-50 text-[#ec0a7a] border border-[#ec0a7a]/40"
+          : "bg-white text-[#b07b94] border border-pink-200 hover:text-[#ec0a7a]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SentimentSummary({ data }: { data: Record<string, Review[]> }) {
+  const total = SENTIMENT_ORDER.reduce((acc, s) => acc + data[s].length, 0) || 1;
+  return (
+    <div className="flex h-2.5 overflow-hidden rounded-full border border-pink-100">
+      {SENTIMENT_ORDER.map((s) => (
+        <div
+          key={s}
+          title={`${s}: ${data[s].length}`}
+          className={SENTIMENT_STYLE[s].bar}
+          style={{ width: `${(data[s].length / total) * 100}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TopicSummary({ data }: { data: Record<string, Review[]> }) {
+  const max = Math.max(1, ...TOPIC_ORDER.map((t) => data[t].length));
+  return (
+    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
+      {TOPIC_ORDER.map((t) => (
+        <div key={t} className="flex items-center gap-3">
+          <span className="w-36 shrink-0 text-xs text-[#8a5570]">{t}</span>
+          <div className="h-2.5 flex-1 rounded-full bg-pink-50">
+            <div
+              className="h-2.5 rounded-full bg-[#ec0a7a]"
+              style={{ width: `${(data[t].length / max) * 100}%` }}
+            />
+          </div>
+          <span className="w-7 shrink-0 text-right text-xs tabular-nums text-[#8a5570]">
+            {data[t].length}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  count,
+  dotClass,
+  reviews,
+}: {
+  title: string;
+  count: number;
+  dotClass: string;
+  reviews: Review[];
+}) {
+  const [open, setOpen] = useState(false);
+  const shown = open ? reviews : reviews.slice(0, 5);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm">
+      <div className="flex items-center gap-2 border-b border-pink-100 px-4 py-3">
+        <span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />
+        <h2 className="text-base font-bold">{title}</h2>
+        <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs tabular-nums text-[#ec0a7a]">
+          {count}
+        </span>
+      </div>
+      <div className="space-y-3 p-4">
+        {shown.map((r, i) => (
+          <ReviewCard key={i} review={r} />
+        ))}
+        {count === 0 && <p className="text-sm text-[#b07b94]">No reviews in this group.</p>}
+      </div>
+      {reviews.length > 5 && (
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full border-t border-pink-100 py-2 text-xs font-medium text-[#ec0a7a] hover:text-pink-700"
+        >
+          {open ? "Show less" : `Show all ${reviews.length}`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function ReviewCard({ review }: { review: Review }) {
+  const isVerdict = review.type === "Video Verdict";
+  const style = SENTIMENT_STYLE[review.sentiment];
+  return (
+    <div className={`rounded-xl border border-pink-100 bg-white p-3 ${style.border}`}>
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
+        <strong className="text-sm">{review.author}</strong>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${style.badge}`}>
+          {review.sentiment}
+        </span>
+        <Badge>{review.source}</Badge>
+        {isVerdict && <Badge>🎬 Video Verdict</Badge>}
+        {review.rating != null && <Badge>{review.rating}★</Badge>}
+        <span className="text-xs text-[#b07b94]">{review.date}</span>
+        {review.video && <span className="text-xs text-[#b07b94]">· {review.video}</span>}
+      </div>
+      <p className="text-sm leading-relaxed text-[#3a2230]">{review.text}</p>
+      <a
+        href={review.source_url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-xs text-[#ec0a7a] hover:text-pink-700"
+      >
+        Source ↗
+      </a>
+    </div>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-[#8a5570]">
+      {children}
+    </span>
+  );
+}
