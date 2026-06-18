@@ -42,12 +42,12 @@ const SENTIMENT_STYLE: Record<
 };
 
 const TOPIC_ORDER = [
-  "Speed/connectivity",
-  "Recharge & billing",
-  "Installation",
-  "Customer support",
   "App bugs",
+  "Customer support",
+  "Installation",
   "Other",
+  "Recharge & billing",
+  "Speed/connectivity",
 ];
 
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
