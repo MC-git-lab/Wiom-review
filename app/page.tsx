@@ -9,7 +9,7 @@ export default function Page() {
       <header className="border-b border-pink-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto max-w-4xl px-4 py-4 flex items-center gap-2">
           <WiomLogo />
-          <span className="font-logo text-lg font-extrabold tracking-tight text-[#ec0a7a]">
+          <span className="font-logo text-sm font-extrabold tracking-tight text-[#ec0a7a]">
             Review Project
           </span>
           <ThemeToggle />
