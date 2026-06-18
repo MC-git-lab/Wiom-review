@@ -178,8 +178,6 @@ const TOPIC_SOLUTIONS: Record<string, string> = {
     "Double-check the plan price and billing cycle (it runs 28 days, not a full month) before recharging, and save the payment confirmation. If a wrong amount is deducted or a plan changes without consent, raise it immediately through the app rather than waiting for the next cycle.",
   "App bugs":
     "If the app freezes during recharge/payment, force-close and retry, or recharge via the Wiom website as a fallback instead of the app. Report the crash with your device model so it can be fixed in an update.",
-  Other:
-    "These don't fit a single category — read the specific complaint text to judge the right next step, but as a general rule: document the issue with dates/screenshots and escalate through the app or social media if a first complaint goes unanswered.",
 };
 
 function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
@@ -187,13 +185,13 @@ function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
     const map: Record<string, Review[]> = {};
     for (const t of TOPIC_ORDER) map[t] = [];
     for (const r of reviews) {
-      if (r.sentiment === "Negative" && r.topic) map[r.topic]?.push(r);
+      if (r.sentiment === "Negative" && r.topic && r.topic !== "Other") map[r.topic]?.push(r);
     }
     return map;
   }, [reviews]);
 
   const order = useMemo(
-    () => [...TOPIC_ORDER].filter((t) => byTopic[t].length > 0).sort((a, b) => byTopic[b].length - byTopic[a].length),
+    () => [...TOPIC_ORDER].filter((t) => t !== "Other" && byTopic[t].length > 0).sort((a, b) => byTopic[b].length - byTopic[a].length),
     [byTopic]
   );
 
