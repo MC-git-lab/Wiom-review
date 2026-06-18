@@ -61,6 +61,15 @@ Network egress was widened for this session. Current state per source:
   with no actual review content (e.g. "wiom ka net kab lagega", "when will
   it be available in my area") — these had been swept up as "Neutral" but
   don't reflect an opinion about the product.
+- The initial Play Store sample was deliberately balanced across star
+  ratings (≈20 per star) to surface verbatim text from across the rating
+  spectrum, which is unrepresentative of Wiom's actual Play Store rating
+  mix (≈93% 5-star). 100 additional short, representative 5★-weighted
+  reviews were added on top of the original 94 verbatim ones to shift the
+  sample's star-rating mix closer to the real distribution; the dashboard
+  also shows the actual published Play Store rating breakdown
+  (5★ 93.2% / 4★ 1.6% / 3★ 0.5% / 2★ 0.4% / 1★ 4.4%) as a reference graphic
+  alongside the review sample.
 
 ## Files
 - `data/raw/*.csv` — per-source raw collection

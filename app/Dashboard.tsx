@@ -106,6 +106,8 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
       {view === "topic" && <SentimentLegend />}
 
+      {(sourceFilter === "All" || sourceFilter === "Play Store") && <PlayStoreRatingBreakdown />}
+
       <div className="space-y-6">
         {view === "sentiment"
           ? SENTIMENT_ORDER.map((s) => (
@@ -143,6 +145,41 @@ function SentimentLegend() {
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-2.5 rounded-full border border-gray-300 bg-white dark:border-neutral-600 dark:bg-neutral-800" /> Neutral
       </span>
+    </div>
+  );
+}
+
+const PLAY_STORE_RATING_BREAKDOWN: { stars: number; pct: number }[] = [
+  { stars: 5, pct: 93.2 },
+  { stars: 4, pct: 1.6 },
+  { stars: 3, pct: 0.5 },
+  { stars: 2, pct: 0.4 },
+  { stars: 1, pct: 4.4 },
+];
+
+function PlayStoreRatingBreakdown() {
+  return (
+    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <h3 className="text-sm font-bold">Play Store overall rating breakdown</h3>
+      <p className="text-xs text-[#b07b94] dark:text-neutral-500">
+        Official aggregate rating distribution shown on the Wiom Play Store listing — based on
+        all ratings, not just the written reviews sampled above.
+      </p>
+      <div className="space-y-1.5 pt-1">
+        {PLAY_STORE_RATING_BREAKDOWN.map(({ stars, pct }) => (
+          <div key={stars} className="flex items-center gap-3">
+            <span className="w-14 shrink-0 text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
+              {"★".repeat(stars)}
+            </span>
+            <div className="h-2.5 flex-1 rounded-full bg-pink-50 dark:bg-neutral-800">
+              <div className="h-2.5 rounded-full bg-[#ec0a7a]" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="w-12 shrink-0 text-right text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
+              {pct}%
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
