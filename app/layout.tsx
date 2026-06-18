@@ -1,8 +1,14 @@
-import { Inter } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const poppins = Poppins({
+  variable: "--font-logo",
+  weight: ["700", "800"],
   subsets: ["latin"],
 });
 
@@ -21,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

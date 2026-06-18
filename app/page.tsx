@@ -1,13 +1,17 @@
 import reviews from "./data/reviews.json";
 import Dashboard from "./Dashboard";
 import ThemeToggle from "./ThemeToggle";
+import WiomLogo from "./WiomLogo";
 
 export default function Page() {
   return (
     <>
-      <header className="border-b border-pink-100 bg-[#ec0a7a] dark:border-neutral-800">
+      <header className="border-b border-pink-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mx-auto max-w-4xl px-4 py-4 flex items-center gap-2">
-          <span className="text-lg font-bold tracking-tight text-white">📶 Wiom Review Project</span>
+          <WiomLogo />
+          <span className="font-logo text-lg font-extrabold tracking-tight text-[#ec0a7a]">
+            Review Project
+          </span>
           <ThemeToggle />
         </div>
       </header>
