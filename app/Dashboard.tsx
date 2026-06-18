@@ -24,19 +24,19 @@ const SENTIMENT_STYLE: Record<
   Negative: {
     dot: "bg-red-500",
     bar: "bg-red-500",
-    badge: "bg-red-50 text-red-600 border border-red-200",
+    badge: "bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
     border: "border-l-4 border-l-red-500",
   },
   Positive: {
     dot: "bg-green-500",
     bar: "bg-green-500",
-    badge: "bg-green-50 text-green-700 border border-green-200",
+    badge: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
     border: "border-l-4 border-l-green-500",
   },
   Neutral: {
     dot: "bg-gray-300",
     bar: "bg-gray-300",
-    badge: "bg-white text-gray-500 border border-gray-300",
+    badge: "bg-white text-gray-500 border border-gray-300 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-600",
     border: "border-l-4 border-l-gray-300",
   },
 };
@@ -74,7 +74,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-[#8a5570]">
+      <p className="text-sm text-[#8a5570] dark:text-neutral-400">
         {filtered.length} reviews collected from Play Store and YouTube (verdicts + comments).
       </p>
 
@@ -89,7 +89,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-[#b07b94]">Source:</span>
+          <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
           {(["All", "Play Store", "YouTube"] as const).map((s) => (
             <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
               {s}
@@ -133,7 +133,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
 function SentimentLegend() {
   return (
-    <div className="flex items-center gap-4 text-xs text-[#8a5570]">
+    <div className="flex items-center gap-4 text-xs text-[#8a5570] dark:text-neutral-400">
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-2.5 rounded-full bg-green-500" /> Positive
       </span>
@@ -141,7 +141,7 @@ function SentimentLegend() {
         <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Negative
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="h-2.5 w-2.5 rounded-full border border-gray-300 bg-white" /> Neutral
+        <span className="h-2.5 w-2.5 rounded-full border border-gray-300 bg-white dark:border-neutral-600 dark:bg-neutral-800" /> Neutral
       </span>
     </div>
   );
@@ -162,7 +162,7 @@ function TabButton({
       className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
         active
           ? "bg-[#ec0a7a] text-white"
-          : "bg-white text-[#8a5570] border border-pink-200 hover:border-[#ec0a7a]"
+          : "bg-white text-[#8a5570] border border-pink-200 hover:border-[#ec0a7a] dark:bg-neutral-900 dark:text-pink-200 dark:border-neutral-700"
       }`}
     >
       {children}
@@ -184,8 +184,8 @@ function FilterChip({
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-xs font-medium transition ${
         active
-          ? "bg-pink-50 text-[#ec0a7a] border border-[#ec0a7a]/40"
-          : "bg-white text-[#b07b94] border border-pink-200 hover:text-[#ec0a7a]"
+          ? "bg-pink-50 text-[#ec0a7a] border border-[#ec0a7a]/40 dark:bg-pink-950/30 dark:text-pink-300"
+          : "bg-white text-[#b07b94] border border-pink-200 hover:text-[#ec0a7a] dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-700"
       }`}
     >
       {children}
@@ -196,7 +196,7 @@ function FilterChip({
 function SentimentSummary({ data }: { data: Record<string, Review[]> }) {
   const total = SENTIMENT_ORDER.reduce((acc, s) => acc + data[s].length, 0) || 1;
   return (
-    <div className="flex h-2.5 overflow-hidden rounded-full border border-pink-100">
+    <div className="flex h-2.5 overflow-hidden rounded-full border border-pink-100 dark:border-neutral-700">
       {SENTIMENT_ORDER.map((s) => (
         <div
           key={s}
@@ -212,17 +212,17 @@ function SentimentSummary({ data }: { data: Record<string, Review[]> }) {
 function TopicSummary({ data }: { data: Record<string, Review[]> }) {
   const max = Math.max(1, ...TOPIC_ORDER.map((t) => data[t].length));
   return (
-    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
+    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
       {TOPIC_ORDER.map((t) => (
         <div key={t} className="flex items-center gap-3">
-          <span className="w-36 shrink-0 text-xs text-[#8a5570]">{t}</span>
-          <div className="h-2.5 flex-1 rounded-full bg-pink-50">
+          <span className="w-36 shrink-0 text-xs text-[#8a5570] dark:text-neutral-400">{t}</span>
+          <div className="h-2.5 flex-1 rounded-full bg-pink-50 dark:bg-neutral-800">
             <div
               className="h-2.5 rounded-full bg-[#ec0a7a]"
               style={{ width: `${(data[t].length / max) * 100}%` }}
             />
           </div>
-          <span className="w-7 shrink-0 text-right text-xs tabular-nums text-[#8a5570]">
+          <span className="w-7 shrink-0 text-right text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
             {data[t].length}
           </span>
         </div>
@@ -246,11 +246,11 @@ function Section({
   const shown = open ? reviews : reviews.slice(0, 5);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm">
-      <div className="flex items-center gap-2 border-b border-pink-100 px-4 py-3">
+    <section className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex items-center gap-2 border-b border-pink-100 px-4 py-3 dark:border-neutral-700">
         <span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />
         <h2 className="text-base font-bold">{title}</h2>
-        <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs tabular-nums text-[#ec0a7a]">
+        <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs tabular-nums text-[#ec0a7a] dark:bg-pink-950/30 dark:text-pink-300">
           {count}
         </span>
       </div>
@@ -258,12 +258,12 @@ function Section({
         {shown.map((r, i) => (
           <ReviewCard key={i} review={r} />
         ))}
-        {count === 0 && <p className="text-sm text-[#b07b94]">No reviews in this group.</p>}
+        {count === 0 && <p className="text-sm text-[#b07b94] dark:text-neutral-500">No reviews in this group.</p>}
       </div>
       {reviews.length > 5 && (
         <button
           onClick={() => setOpen(!open)}
-          className="w-full border-t border-pink-100 py-2 text-xs font-medium text-[#ec0a7a] hover:text-pink-700"
+          className="w-full border-t border-pink-100 py-2 text-xs font-medium text-[#ec0a7a] hover:text-pink-700 dark:border-neutral-700 dark:text-pink-300 dark:hover:text-pink-200"
         >
           {open ? "Show less" : `Show all ${reviews.length}`}
         </button>
@@ -276,7 +276,7 @@ function ReviewCard({ review }: { review: Review }) {
   const isVerdict = review.type === "Video Verdict";
   const style = SENTIMENT_STYLE[review.sentiment];
   return (
-    <div className={`rounded-xl border border-pink-100 bg-white p-3 ${style.border}`}>
+    <div className={`rounded-xl border border-pink-100 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900 ${style.border}`}>
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
         <strong className="text-sm">{review.author}</strong>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${style.badge}`}>
@@ -285,15 +285,15 @@ function ReviewCard({ review }: { review: Review }) {
         <Badge>{review.source}</Badge>
         {isVerdict && <Badge>🎬 Video Verdict</Badge>}
         {review.rating != null && <Badge>{review.rating}★</Badge>}
-        <span className="text-xs text-[#b07b94]">{review.date}</span>
-        {review.video && <span className="text-xs text-[#b07b94]">· {review.video}</span>}
+        <span className="text-xs text-[#b07b94] dark:text-neutral-500">{review.date}</span>
+        {review.video && <span className="text-xs text-[#b07b94] dark:text-neutral-500">· {review.video}</span>}
       </div>
-      <p className="text-sm leading-relaxed text-[#3a2230]">{review.text}</p>
+      <p className="text-sm leading-relaxed text-[#3a2230] dark:text-neutral-200">{review.text}</p>
       <a
         href={review.source_url}
         target="_blank"
         rel="noreferrer"
-        className="text-xs text-[#ec0a7a] hover:text-pink-700"
+        className="text-xs text-[#ec0a7a] hover:text-pink-700 dark:text-pink-300 dark:hover:text-pink-200"
       >
         Source ↗
       </a>
@@ -303,7 +303,7 @@ function ReviewCard({ review }: { review: Review }) {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-[#8a5570]">
+    <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-[#8a5570] dark:bg-neutral-800 dark:text-neutral-300">
       {children}
     </span>
   );
