@@ -52,7 +52,7 @@ const TOPIC_ORDER = [
 
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
   const [view, setView] = useState<"sentiment" | "topic">("sentiment");
-  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube">("All");
+  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "Google Reviews" | "YouTube">("All");
 
   const filtered = useMemo(
     () => reviews.filter((r) => sourceFilter === "All" || r.source === sourceFilter),
@@ -90,7 +90,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
-          {(["All", "Play Store", "YouTube"] as const).map((s) => (
+          {(["All", "Play Store", "Google Reviews", "YouTube"] as const).map((s) => (
             <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
               {s}
             </FilterChip>

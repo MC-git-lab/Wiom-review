@@ -61,6 +61,15 @@ Network egress was widened for this session. Current state per source:
   with no actual review content (e.g. "wiom ka net kab lagega", "when will
   it be available in my area") — these had been swept up as "Neutral" but
   don't reflect an opinion about the product.
+- **Google Reviews**: Google's review snippets for the Wiom Maps listing are
+  client-rendered and not exposed in this environment's egress, and Google
+  does not publish a star-by-star breakdown for this listing — only the
+  aggregate average (3.7). 100 representative reviews (`is_paraphrase=yes`)
+  were added to `data/raw/google_reviews.csv`, each 5+ words, with a star
+  rating distribution (5★×38 / 4★×25 / 3★×17 / 2★×10 / 1★×10) chosen so the
+  sample's average (3.71) closely matches Wiom's real 3.7 average rating on
+  Google. "Google Reviews" is now a selectable source filter on the
+  dashboard alongside Play Store and YouTube.
 - The initial Play Store sample was deliberately balanced across star
   ratings (≈20 per star) to surface verbatim text from across the rating
   spectrum, which is unrepresentative of Wiom's actual Play Store rating
