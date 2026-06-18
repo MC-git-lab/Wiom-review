@@ -51,13 +51,16 @@ const TOPIC_ORDER = [
 ];
 
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
-  const [view, setView] = useState<"sentiment" | "topic">("sentiment");
-  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "Google Reviews" | "YouTube">("All");
+  const [view, setView] = useState<"sentiment" | "topic" | "google">("sentiment");
+  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube">("All");
 
-  const filtered = useMemo(
-    () => reviews.filter((r) => sourceFilter === "All" || r.source === sourceFilter),
-    [reviews, sourceFilter]
-  );
+  const googleReviews = useMemo(() => reviews.filter((r) => r.source === "Google Reviews"), [reviews]);
+
+  const filtered = useMemo(() => {
+    if (view === "google") return googleReviews;
+    const pool = reviews.filter((r) => r.source !== "Google Reviews");
+    return pool.filter((r) => sourceFilter === "All" || r.source === sourceFilter);
+  }, [reviews, googleReviews, sourceFilter, view]);
 
   const bySentiment = useMemo(() => {
     const map: Record<string, Review[]> = { Negative: [], Positive: [], Neutral: [] };
@@ -75,7 +78,8 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
-        {filtered.length} reviews collected from Play Store and YouTube (verdicts + comments).
+        {filtered.length} reviews collected from{" "}
+        {view === "google" ? "Google Reviews" : "Play Store and YouTube (verdicts + comments)"}.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -86,46 +90,54 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
           <TabButton active={view === "topic"} onClick={() => setView("topic")}>
             By Review Type
           </TabButton>
+          <TabButton active={view === "google"} onClick={() => setView("google")}>
+            Google Reviews
+          </TabButton>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
-          {(["All", "Play Store", "Google Reviews", "YouTube"] as const).map((s) => (
-            <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
-              {s}
-            </FilterChip>
-          ))}
-        </div>
+        {view !== "google" && (
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
+            {(["All", "Play Store", "YouTube"] as const).map((s) => (
+              <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
+                {s}
+              </FilterChip>
+            ))}
+          </div>
+        )}
       </div>
 
-      {view === "sentiment" ? (
-        <SentimentSummary data={bySentiment} />
-      ) : (
+      {view === "topic" ? (
         <TopicSummary data={byTopic} />
+      ) : (
+        <SentimentSummary data={bySentiment} />
       )}
 
       {view === "topic" && <SentimentLegend />}
 
-      {(sourceFilter === "All" || sourceFilter === "Play Store") && <PlayStoreRatingBreakdown />}
+      {view === "google" && <GoogleReviewsRatingBreakdown reviews={googleReviews} />}
+      {view !== "google" && (sourceFilter === "All" || sourceFilter === "Play Store") && (
+        <PlayStoreRatingBreakdown />
+      )}
 
       <div className="space-y-6">
-        {view === "sentiment"
-          ? SENTIMENT_ORDER.map((s) => (
-              <Section
-                key={s}
-                title={s}
-                count={bySentiment[s].length}
-                dotClass={SENTIMENT_STYLE[s].dot}
-                reviews={bySentiment[s]}
-              />
-            ))
-          : TOPIC_ORDER.map((t) => (
+        {view === "topic"
+          ? TOPIC_ORDER.map((t) => (
               <Section
                 key={t}
                 title={t}
                 count={byTopic[t].length}
                 dotClass="bg-[#ec0a7a]"
                 reviews={byTopic[t]}
+              />
+            ))
+          : SENTIMENT_ORDER.map((s) => (
+              <Section
+                key={s}
+                title={s}
+                count={bySentiment[s].length}
+                dotClass={SENTIMENT_STYLE[s].dot}
+                reviews={bySentiment[s]}
               />
             ))}
       </div>
@@ -176,6 +188,43 @@ function PlayStoreRatingBreakdown() {
             </div>
             <span className="w-12 shrink-0 text-right text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
               {pct}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GoogleReviewsRatingBreakdown({ reviews }: { reviews: Review[] }) {
+  const counts = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: reviews.filter((r) => r.rating === stars).length,
+  }));
+  const total = reviews.length || 1;
+  const avg = reviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) / total;
+
+  return (
+    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <h3 className="text-sm font-bold">Google average rating: {avg.toFixed(1)} ★</h3>
+      <p className="text-xs text-[#b07b94] dark:text-neutral-500">
+        Google publishes only an aggregate average for this listing (3.7), not a per-star
+        breakdown. This sample's star mix was built to match that average.
+      </p>
+      <div className="space-y-1.5 pt-1">
+        {counts.map(({ stars, count }) => (
+          <div key={stars} className="flex items-center gap-3">
+            <span className="w-14 shrink-0 text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
+              {"★".repeat(stars)}
+            </span>
+            <div className="h-2.5 flex-1 rounded-full bg-pink-50 dark:bg-neutral-800">
+              <div
+                className="h-2.5 rounded-full bg-[#ec0a7a]"
+                style={{ width: `${(count / total) * 100}%` }}
+              />
+            </div>
+            <span className="w-12 shrink-0 text-right text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
+              {count}
             </span>
           </div>
         ))}
