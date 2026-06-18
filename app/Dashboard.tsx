@@ -50,6 +50,13 @@ const TOPIC_ORDER = [
   "Speed/connectivity",
 ];
 
+const SOURCE_DESCRIPTION: Record<"All" | "Play Store" | "YouTube" | "Google Reviews", string> = {
+  All: "reviews collected from Play Store reviews, YouTube video verdicts & comments, and Google reviews.",
+  "Play Store": "Play Store reviews collected.",
+  YouTube: "YouTube video verdicts & comments collected.",
+  "Google Reviews": "Google reviews collected.",
+};
+
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
   const [view, setView] = useState<"sentiment" | "topic">("sentiment");
   const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube" | "Google Reviews">("All");
@@ -82,7 +89,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
-        {filtered.length} reviews collected from Play Store and YouTube (verdicts + comments).
+        {filtered.length} {SOURCE_DESCRIPTION[sourceFilter]}
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
