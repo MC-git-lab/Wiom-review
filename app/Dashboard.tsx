@@ -59,7 +59,8 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
   const filtered = useMemo(() => {
     if (view === "google") return googleReviews;
     const pool = reviews.filter((r) => r.source !== "Google Reviews");
-    return pool.filter((r) => sourceFilter === "All" || r.source === sourceFilter);
+    if (sourceFilter === "All") return pool.filter((r) => r.source !== "Play Store");
+    return pool.filter((r) => r.source === sourceFilter);
   }, [reviews, googleReviews, sourceFilter, view]);
 
   const bySentiment = useMemo(() => {
@@ -79,7 +80,14 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
     <div className="space-y-6">
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
         {filtered.length} reviews collected from{" "}
-        {view === "google" ? "Google Reviews" : "Play Store and YouTube (verdicts + comments)"}.
+        {view === "google"
+          ? "Google Reviews"
+          : sourceFilter === "Play Store"
+          ? "the Play Store"
+          : sourceFilter === "YouTube"
+          ? "YouTube (verdicts + comments)"
+          : "YouTube (verdicts + comments) — switch to the Play Store filter to include those reviews"}
+        .
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -116,9 +124,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
       {view === "topic" && <SentimentLegend />}
 
       {view === "google" && <GoogleReviewsRatingBreakdown reviews={googleReviews} />}
-      {view !== "google" && (sourceFilter === "All" || sourceFilter === "Play Store") && (
-        <PlayStoreRatingBreakdown />
-      )}
+      {view !== "google" && sourceFilter === "Play Store" && <PlayStoreRatingBreakdown />}
 
       <div className="space-y-6">
         {view === "topic"
@@ -204,9 +210,22 @@ function GoogleReviewsRatingBreakdown({ reviews }: { reviews: Review[] }) {
   const total = reviews.length || 1;
   const avg = reviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) / total;
 
+  const fullStars = Math.round(avg);
+
   return (
-    <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-      <h3 className="text-sm font-bold">Google average rating: {avg.toFixed(1)} ★</h3>
+    <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex items-center gap-3">
+        <span className="text-3xl font-bold text-[#ec0a7a]">{avg.toFixed(1)}</span>
+        <div>
+          <div className="text-lg leading-none text-[#ec0a7a]">
+            {"★".repeat(fullStars)}
+            <span className="text-pink-100 dark:text-neutral-700">{"★".repeat(5 - fullStars)}</span>
+          </div>
+          <p className="text-xs text-[#b07b94] dark:text-neutral-500">
+            Average rating on Google ({total} reviews)
+          </p>
+        </div>
+      </div>
       <p className="text-xs text-[#b07b94] dark:text-neutral-500">
         Google publishes only an aggregate average for this listing (3.7), not a per-star
         breakdown. This sample's star mix was built to match that average.
