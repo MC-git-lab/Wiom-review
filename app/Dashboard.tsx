@@ -62,6 +62,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
   const bySentiment = useMemo(() => {
     const map: Record<string, Review[]> = { Negative: [], Positive: [], Neutral: [] };
     for (const r of filtered) map[r.sentiment].push(r);
+    for (const s of SENTIMENT_ORDER) map[s].sort((a, b) => a.author.localeCompare(b.author));
     return map;
   }, [filtered]);
 
@@ -69,8 +70,14 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
     const map: Record<string, Review[]> = {};
     for (const t of TOPIC_ORDER) map[t] = [];
     for (const r of filtered) map[r.topic]?.push(r);
+    for (const t of TOPIC_ORDER) map[t].sort((a, b) => a.author.localeCompare(b.author));
     return map;
   }, [filtered]);
+
+  const topicOrderByCount = useMemo(
+    () => [...TOPIC_ORDER].sort((a, b) => byTopic[b].length - byTopic[a].length),
+    [byTopic]
+  );
 
   return (
     <div className="space-y-6">
@@ -99,7 +106,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
       </div>
 
       {view === "topic" ? (
-        <TopicSummary data={byTopic} />
+        <TopicSummary data={byTopic} order={topicOrderByCount} />
       ) : (
         <SentimentSummary data={bySentiment} />
       )}
@@ -111,7 +118,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
       <div className="space-y-6">
         {view === "topic"
-          ? TOPIC_ORDER.map((t) => (
+          ? topicOrderByCount.map((t) => (
               <Section
                 key={t}
                 title={t}
@@ -268,11 +275,11 @@ function SentimentSummary({ data }: { data: Record<string, Review[]> }) {
   );
 }
 
-function TopicSummary({ data }: { data: Record<string, Review[]> }) {
-  const max = Math.max(1, ...TOPIC_ORDER.map((t) => data[t].length));
+function TopicSummary({ data, order }: { data: Record<string, Review[]>; order: string[] }) {
+  const max = Math.max(1, ...order.map((t) => data[t].length));
   return (
     <div className="space-y-2 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-      {TOPIC_ORDER.map((t) => (
+      {order.map((t) => (
         <div key={t} className="flex items-center gap-3">
           <span className="w-36 shrink-0 text-xs text-[#8a5570] dark:text-neutral-400">{t}</span>
           <div className="h-2.5 flex-1 rounded-full bg-pink-50 dark:bg-neutral-800">
