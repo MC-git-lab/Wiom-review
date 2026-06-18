@@ -58,6 +58,25 @@ const SOURCE_DESCRIPTION: Record<"All" | "Play Store" | "YouTube" | "Google Revi
 };
 
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
+  const [page, setPage] = useState<"reviews" | "problems">("reviews");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <TabButton active={page === "reviews"} onClick={() => setPage("reviews")}>
+          Reviews
+        </TabButton>
+        <TabButton active={page === "problems"} onClick={() => setPage("problems")}>
+          Common Problems & Solutions
+        </TabButton>
+      </div>
+
+      {page === "reviews" ? <ReviewsPage reviews={reviews} /> : <ProblemsAndSolutions reviews={reviews} />}
+    </div>
+  );
+}
+
+function ReviewsPage({ reviews }: { reviews: Review[] }) {
   const [view, setView] = useState<"sentiment" | "topic">("sentiment");
   const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube" | "Google Reviews">("All");
 
@@ -145,6 +164,86 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
             ))}
       </div>
     </div>
+  );
+}
+
+const TOPIC_SOLUTIONS: Record<string, string> = {
+  "Speed/connectivity":
+    "Restart the router/ONT first; if speed still falls well below your plan's promised Mbps or outages recur, log a complaint through the app and ask for a technician visit. Push for downtime credit — Wiom has reportedly extended validity hours for filed outage complaints.",
+  "Customer support":
+    "If calls aren't picked up or a complaint sits unresolved past 24-48 hours, escalate through the app's support chat and Wiom's official social media handles rather than re-calling the same number. Keep a written record (screenshots/ticket IDs) of every complaint.",
+  Installation:
+    "Get the installation fee, timeline, and what's included (router, free vs. paid visit) confirmed in writing before paying anything in advance. If install is delayed beyond the promised window, request a refund of the advance/visit fee or escalate to cancel.",
+  "Recharge & billing":
+    "Double-check the plan price and billing cycle (it runs 28 days, not a full month) before recharging, and save the payment confirmation. If a wrong amount is deducted or a plan changes without consent, raise it immediately through the app rather than waiting for the next cycle.",
+  "App bugs":
+    "If the app freezes during recharge/payment, force-close and retry, or recharge via the Wiom website as a fallback instead of the app. Report the crash with your device model so it can be fixed in an update.",
+  Other:
+    "These don't fit a single category — read the specific complaint text to judge the right next step, but as a general rule: document the issue with dates/screenshots and escalate through the app or social media if a first complaint goes unanswered.",
+};
+
+function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
+  const byTopic = useMemo(() => {
+    const map: Record<string, Review[]> = {};
+    for (const t of TOPIC_ORDER) map[t] = [];
+    for (const r of reviews) {
+      if (r.sentiment === "Negative" && r.topic) map[r.topic]?.push(r);
+    }
+    return map;
+  }, [reviews]);
+
+  const order = useMemo(
+    () => [...TOPIC_ORDER].filter((t) => byTopic[t].length > 0).sort((a, b) => byTopic[b].length - byTopic[a].length),
+    [byTopic]
+  );
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-[#8a5570] dark:text-neutral-400">
+        Negative reviews grouped by topic, with the most common complaints and a suggested way to handle each one.
+      </p>
+      <div className="space-y-6">
+        {order.map((t) => (
+          <ProblemCard key={t} topic={t} reviews={byTopic[t]} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProblemCard({ topic, reviews }: { topic: string; reviews: Review[] }) {
+  const [open, setOpen] = useState(false);
+  const examples = open ? reviews : reviews.slice(0, 3);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex items-center gap-2 border-b border-pink-100 px-4 py-3 dark:border-neutral-700">
+        <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+        <h2 className="text-base font-bold">{topic}</h2>
+        <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs tabular-nums text-[#ec0a7a] dark:bg-pink-950/30 dark:text-pink-300">
+          {reviews.length} complaints
+        </span>
+      </div>
+      <div className="space-y-3 p-4">
+        <div className="rounded-xl bg-pink-50 p-3 text-sm leading-relaxed text-[#3a2230] dark:bg-neutral-800 dark:text-neutral-200">
+          <strong className="text-[#ec0a7a] dark:text-pink-300">Suggested solution: </strong>
+          {TOPIC_SOLUTIONS[topic]}
+        </div>
+        <div className="space-y-3">
+          {examples.map((r, i) => (
+            <ReviewCard key={i} review={r} />
+          ))}
+        </div>
+      </div>
+      {reviews.length > 3 && (
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full border-t border-pink-100 py-2 text-xs font-medium text-[#ec0a7a] hover:text-pink-700 dark:border-neutral-700 dark:text-pink-300 dark:hover:text-pink-200"
+        >
+          {open ? "Show less" : `Show all ${reviews.length} examples`}
+        </button>
+      )}
+    </section>
   );
 }
 
