@@ -139,6 +139,7 @@ function ReviewsPage({ reviews }: { reviews: Review[] }) {
 
       {view === "topic" && <SentimentLegend />}
 
+      {view === "sentiment" && sourceFilter === "All" && <SentimentTrendChart reviews={filtered} />}
       {view === "sentiment" && sourceFilter === "Play Store" && <PlayStoreRatingBreakdown />}
       {view === "sentiment" && sourceFilter === "Google Reviews" && <GoogleStarGraphic />}
 
@@ -375,6 +376,76 @@ function SentimentSummary({ data }: { data: Record<string, Review[]> }) {
           style={{ width: `${(data[s].length / total) * 100}%` }}
         />
       ))}
+    </div>
+  );
+}
+
+function buildTrendBuckets(reviews: Review[]) {
+  const dated = reviews.filter((r) => r.date);
+  if (dated.length === 0) return [];
+
+  const parsed = dated.map((r) => ({ review: r, time: new Date(r.date + "T00:00:00").getTime() }));
+  const earliest = new Date(Math.min(...parsed.map((p) => p.time)));
+  const latest = new Date(Math.max(...parsed.map((p) => p.time)));
+
+  const startMonthIndex = earliest.getFullYear() * 12 + earliest.getMonth();
+  const endMonthIndex = latest.getFullYear() * 12 + latest.getMonth();
+  const bucketCount = Math.floor((endMonthIndex - startMonthIndex) / 3) + 1;
+
+  const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const buckets = Array.from({ length: bucketCount }, (_, i) => {
+    const startIdx = startMonthIndex + i * 3;
+    const endIdx = startIdx + 2;
+    const startYear = Math.floor(startIdx / 12);
+    const startMonth = startIdx % 12;
+    const endYear = Math.floor(endIdx / 12);
+    const endMonth = endIdx % 12;
+    const label =
+      startYear === endYear
+        ? `${MONTH_NAMES[startMonth]}–${MONTH_NAMES[endMonth]} ${startYear}`
+        : `${MONTH_NAMES[startMonth]} ${startYear}–${MONTH_NAMES[endMonth]} ${endYear}`;
+    return { label, Positive: 0, Neutral: 0, Negative: 0 };
+  });
+
+  for (const { review, time } of parsed) {
+    const d = new Date(time);
+    const monthIndex = d.getFullYear() * 12 + d.getMonth();
+    const bucketIdx = Math.floor((monthIndex - startMonthIndex) / 3);
+    buckets[bucketIdx][review.sentiment] += 1;
+  }
+
+  return buckets;
+}
+
+function SentimentTrendChart({ reviews }: { reviews: Review[] }) {
+  const buckets = useMemo(() => buildTrendBuckets(reviews), [reviews]);
+  const max = Math.max(1, ...buckets.flatMap((b) => SENTIMENT_ORDER.map((s) => b[s])));
+
+  if (buckets.length === 0) return null;
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <h3 className="text-sm font-bold">Sentiment trend over time (3-month intervals)</h3>
+      <div className="flex items-end gap-3 overflow-x-auto pb-1">
+        {buckets.map((b) => (
+          <div key={b.label} className="flex flex-col items-center gap-1">
+            <div className="flex h-28 items-end gap-0.5">
+              {SENTIMENT_ORDER.map((s) => (
+                <div
+                  key={s}
+                  title={`${s}: ${b[s]}`}
+                  className={`w-2.5 rounded-t ${SENTIMENT_STYLE[s].bar}`}
+                  style={{ height: `${(b[s] / max) * 100}%` }}
+                />
+              ))}
+            </div>
+            <span className="w-16 text-center text-[10px] leading-tight text-[#8a5570] dark:text-neutral-400">
+              {b.label}
+            </span>
+          </div>
+        ))}
+      </div>
+      <SentimentLegend />
     </div>
   );
 }
