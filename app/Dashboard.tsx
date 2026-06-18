@@ -51,17 +51,13 @@ const TOPIC_ORDER = [
 ];
 
 export default function Dashboard({ reviews }: { reviews: Review[] }) {
-  const [view, setView] = useState<"sentiment" | "topic" | "google">("sentiment");
-  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube">("All");
+  const [view, setView] = useState<"sentiment" | "topic">("sentiment");
+  const [sourceFilter, setSourceFilter] = useState<"All" | "Play Store" | "YouTube" | "Google Reviews">("All");
 
-  const googleReviews = useMemo(() => reviews.filter((r) => r.source === "Google Reviews"), [reviews]);
-
-  const filtered = useMemo(() => {
-    if (view === "google") return googleReviews;
-    const pool = reviews.filter((r) => r.source !== "Google Reviews");
-    if (sourceFilter === "All") return pool.filter((r) => r.source !== "Play Store");
-    return pool.filter((r) => r.source === sourceFilter);
-  }, [reviews, googleReviews, sourceFilter, view]);
+  const filtered = useMemo(
+    () => reviews.filter((r) => sourceFilter === "All" || r.source === sourceFilter),
+    [reviews, sourceFilter]
+  );
 
   const bySentiment = useMemo(() => {
     const map: Record<string, Review[]> = { Negative: [], Positive: [], Neutral: [] };
@@ -79,15 +75,7 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
-        {filtered.length} reviews collected from{" "}
-        {view === "google"
-          ? "Google Reviews"
-          : sourceFilter === "Play Store"
-          ? "the Play Store"
-          : sourceFilter === "YouTube"
-          ? "YouTube (verdicts + comments)"
-          : "YouTube (verdicts + comments) — switch to the Play Store filter to include those reviews"}
-        .
+        {filtered.length} reviews collected from Play Store and YouTube (verdicts + comments).
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -98,21 +86,16 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
           <TabButton active={view === "topic"} onClick={() => setView("topic")}>
             By Review Type
           </TabButton>
-          <TabButton active={view === "google"} onClick={() => setView("google")}>
-            Google Reviews
-          </TabButton>
         </div>
 
-        {view !== "google" && (
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
-            {(["All", "Play Store", "YouTube"] as const).map((s) => (
-              <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
-                {s}
-              </FilterChip>
-            ))}
-          </div>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-[#b07b94] dark:text-neutral-500">Source:</span>
+          {(["All", "Play Store", "YouTube", "Google Reviews"] as const).map((s) => (
+            <FilterChip key={s} active={sourceFilter === s} onClick={() => setSourceFilter(s)}>
+              {s}
+            </FilterChip>
+          ))}
+        </div>
       </div>
 
       {view === "topic" ? (
@@ -123,8 +106,8 @@ export default function Dashboard({ reviews }: { reviews: Review[] }) {
 
       {view === "topic" && <SentimentLegend />}
 
-      {view === "google" && <GoogleReviewsRatingBreakdown reviews={googleReviews} />}
-      {view !== "google" && sourceFilter === "Play Store" && <PlayStoreRatingBreakdown />}
+      {view === "sentiment" && sourceFilter === "Play Store" && <PlayStoreRatingBreakdown />}
+      {view === "sentiment" && sourceFilter === "Google Reviews" && <GoogleStarGraphic />}
 
       <div className="space-y-6">
         {view === "topic"
@@ -202,51 +185,22 @@ function PlayStoreRatingBreakdown() {
   );
 }
 
-function GoogleReviewsRatingBreakdown({ reviews }: { reviews: Review[] }) {
-  const counts = [5, 4, 3, 2, 1].map((stars) => ({
-    stars,
-    count: reviews.filter((r) => r.rating === stars).length,
-  }));
-  const total = reviews.length || 1;
-  const avg = reviews.reduce((acc, r) => acc + (r.rating ?? 0), 0) / total;
-
-  const fullStars = Math.round(avg);
+function GoogleStarGraphic() {
+  const rating = 3.7;
+  const fullStars = Math.floor(rating);
+  const fraction = rating - fullStars;
 
   return (
-    <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl font-bold text-[#ec0a7a]">{avg.toFixed(1)}</span>
-        <div>
-          <div className="text-lg leading-none text-[#ec0a7a]">
-            {"★".repeat(fullStars)}
-            <span className="text-pink-100 dark:text-neutral-700">{"★".repeat(5 - fullStars)}</span>
-          </div>
-          <p className="text-xs text-[#b07b94] dark:text-neutral-500">
-            Average rating on Google ({total} reviews)
-          </p>
+    <div className="flex items-center justify-center gap-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <span className="text-3xl font-bold text-[#ec0a7a]">{rating.toFixed(1)}</span>
+      <div className="relative text-3xl leading-none text-pink-100 dark:text-neutral-700">
+        {"★".repeat(5)}
+        <div
+          className="absolute inset-0 overflow-hidden text-[#ec0a7a]"
+          style={{ width: `${((fullStars + fraction) / 5) * 100}%` }}
+        >
+          {"★".repeat(5)}
         </div>
-      </div>
-      <p className="text-xs text-[#b07b94] dark:text-neutral-500">
-        Google publishes only an aggregate average for this listing (3.7), not a per-star
-        breakdown. This sample's star mix was built to match that average.
-      </p>
-      <div className="space-y-1.5 pt-1">
-        {counts.map(({ stars, count }) => (
-          <div key={stars} className="flex items-center gap-3">
-            <span className="w-14 shrink-0 text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
-              {"★".repeat(stars)}
-            </span>
-            <div className="h-2.5 flex-1 rounded-full bg-pink-50 dark:bg-neutral-800">
-              <div
-                className="h-2.5 rounded-full bg-[#ec0a7a]"
-                style={{ width: `${(count / total) * 100}%` }}
-              />
-            </div>
-            <span className="w-12 shrink-0 text-right text-xs tabular-nums text-[#8a5570] dark:text-neutral-400">
-              {count}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   );
