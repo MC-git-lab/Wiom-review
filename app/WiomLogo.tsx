@@ -10,8 +10,8 @@ export default function WiomLogo({ className = "" }: { className?: string }) {
       <Image
         src="/wiom-logo-dark.png"
         alt="Wiom"
-        width={130}
-        height={28}
+        width={104}
+        height={22}
         className="hidden dark:block"
       />
     </span>
