@@ -198,7 +198,8 @@ const FAQ_KB: FaqEntry[] = [
       "outage", "down", "internet down", "wifi down", "no internet", "no network",
       "low speed", "speed issue", "mbps", "bandwidth", "router restart", "ont", "signal",
       "weak signal", "range", "wifi range", "dead zone", "ping", "latency", "gaming lag",
-      "video buffering", "streaming issue", "intermittent",
+      "video buffering", "streaming issue", "intermittent", "net nahi chal raha",
+      "internet not working", "wifi not working", "service down for days", "doesn't work most days",
     ],
     solution:
       "Restart the router/ONT first; if speed still falls well below your plan's promised Mbps or outages recur, log a complaint through the app and ask for a technician visit. Push for downtime credit — Wiom has reportedly extended validity hours for filed outage complaints.",
@@ -212,10 +213,12 @@ const FAQ_KB: FaqEntry[] = [
       "escalation", "no reply", "rude", "rude behaviour", "rude staff", "agent",
       "chat support", "live chat", "callback", "complaint status", "delay in response",
       "email not getting reply", "no email reply", "phone not picked", "calls not picked",
-      "contact number", "support number", "wiom helpline number",
+      "contact number", "support number", "wiom helpline number", "fraud", "scam", "cheat",
+      "cheated", "scammed", "fraud company", "zero resolution", "no resolution",
+      "complaint ignored", "worst service", "waste of money",
     ],
     solution:
-      "If calls aren't picked up or a complaint sits unresolved past 24-48 hours, escalate through the app's support chat and Wiom's official social media handles rather than re-calling the same number. Keep a written record (screenshots/ticket IDs) of every complaint.",
+      "If calls aren't picked up or a complaint sits unresolved past 24-48 hours, escalate through the app's support chat and Wiom's official social media handles rather than re-calling the same number. Keep a written record (screenshots/ticket IDs) of every complaint. If you believe you've been misled or scammed (e.g. denied a promised plan or service), file a formal written complaint citing the original offer, and escalate to the grievance/nodal officer if support doesn't resolve it.",
   },
   {
     id: "installation",
