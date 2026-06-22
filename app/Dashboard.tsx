@@ -181,7 +181,122 @@ const TOPIC_SOLUTIONS: Record<string, string> = {
     "If the app freezes during recharge/payment, force-close and retry, or recharge via the Wiom website as a fallback instead of the app. Report the crash with your device model so it can be fixed in an update.",
 };
 
+// Extra synonyms/phrases per topic so the search bar catches more ways a user might phrase the same problem.
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  "Speed/connectivity": [
+    "slow internet",
+    "no internet",
+    "wifi down",
+    "connection drop",
+    "buffering",
+    "lag",
+    "outage",
+    "router restart",
+    "ont light",
+    "low speed",
+    "disconnect",
+    "network down",
+    "signal",
+    "bandwidth",
+    "fup",
+    "data cap",
+    "throttle",
+  ],
+  "Customer support": [
+    "contact",
+    "phone number",
+    "customer care number",
+    "support number",
+    "email",
+    "email id",
+    "helpline",
+    "no response",
+    "call not answered",
+    "complaint not resolved",
+    "escalate",
+    "ticket",
+    "live chat",
+    "social media",
+    "fake number",
+  ],
+  Installation: [
+    "install",
+    "new connection",
+    "technician",
+    "engineer visit",
+    "setup fee",
+    "advance payment",
+    "delay",
+    "router not delivered",
+    "shifting",
+    "relocation",
+    "address change",
+  ],
+  "Recharge & billing": [
+    "recharge",
+    "bill",
+    "payment failed",
+    "wrong deduction",
+    "refund",
+    "cancel plan",
+    "cancellation",
+    "security deposit",
+    "plan change",
+    "validity",
+    "billing cycle",
+    "double charge",
+    "kyc",
+  ],
+  "App bugs": [
+    "app crash",
+    "app not working",
+    "app freeze",
+    "login issue",
+    "otp not received",
+    "update",
+    "bug",
+    "error",
+  ],
+};
+
+// Standalone FAQ entries for things that may not be tied to any single review topic,
+// e.g. asking how to reach support when there isn't enough negative-review data yet.
+const FAQ_ENTRIES: { question: string; keywords: string[]; answer: string }[] = [
+  {
+    question: "How do I find Wiom's official phone number or email?",
+    keywords: [
+      "phone number",
+      "contact number",
+      "customer care number",
+      "support number",
+      "helpline",
+      "email",
+      "email id",
+      "email address",
+      "contact",
+      "reach support",
+      "official number",
+    ],
+    answer:
+      "Use the contact details listed inside the Wiom app (Help/Support section) or on Wiom's official website — don't rely on phone numbers shared in app store reviews or comments, several reviewers reported fake/third-party numbers posing as Wiom support. The app's in-built support chat and Wiom's verified social media handles are the most reliable channels for a traceable response.",
+  },
+  {
+    question: "How do I cancel my plan or get a refund?",
+    keywords: ["cancel", "cancellation", "refund", "money back", "deposit", "advance"],
+    answer:
+      "Raise a cancellation/refund request through the app's support section and keep the ticket ID — get any refund timeline confirmed in writing. If it isn't actioned within a few days, escalate through Wiom's official social media handles rather than waiting on repeat calls.",
+  },
+  {
+    question: "Why was I charged the wrong amount or charged twice?",
+    keywords: ["wrong amount", "double charge", "overcharged", "deducted", "billing error"],
+    answer:
+      "Save the payment confirmation/screenshot and raise it immediately through the app rather than waiting for the next billing cycle — Wiom's billing cycle runs 28 days, not a calendar month, which is a common source of confusion.",
+  },
+];
+
 function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
+  const [query, setQuery] = useState("");
+
   const byTopic = useMemo(() => {
     const map: Record<string, Review[]> = {};
     for (const t of TOPIC_ORDER) map[t] = [];
@@ -196,13 +311,77 @@ function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
     [byTopic]
   );
 
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return null;
+    const terms = q.split(/\s+/).filter(Boolean);
+
+    const topics = order
+      .map((t) => {
+        const haystack = `${t} ${TOPIC_SOLUTIONS[t]} ${(TOPIC_KEYWORDS[t] ?? []).join(" ")} ${byTopic[t]
+          .map((r) => r.text)
+          .join(" ")}`.toLowerCase();
+        const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 1 : 0), 0);
+        return { topic: t, score };
+      })
+      .filter((m) => m.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((m) => m.topic);
+
+    const faqs = FAQ_ENTRIES
+      .map((f) => {
+        const haystack = `${f.question} ${f.keywords.join(" ")}`.toLowerCase();
+        const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 1 : 0), 0);
+        return { faq: f, score };
+      })
+      .filter((m) => m.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((m) => m.faq);
+
+    return { topics, faqs };
+  }, [query, order, byTopic]);
+
+  const visibleTopics = matches?.topics ?? order;
+  const visibleFaqs = matches?.faqs ?? [];
+  const resultCount = matches ? matches.topics.length + matches.faqs.length : null;
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
         Negative reviews grouped by topic, with the most common complaints and a suggested way to handle each one.
       </p>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search a problem, e.g. &quot;router not working&quot;, &quot;refund&quot;, or &quot;customer care number&quot;"
+        className="w-full rounded-xl border border-pink-100 bg-white px-4 py-2.5 text-sm placeholder:text-[#c98aa6] focus:outline-none focus:ring-2 focus:ring-[#ec0a7a] dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500"
+      />
+      {resultCount !== null && (
+        <p className="text-xs text-[#8a5570] dark:text-neutral-400">
+          {resultCount > 0
+            ? `${resultCount} matching result${resultCount > 1 ? "s" : ""} for "${query}"`
+            : `No matching results for "${query}"`}
+        </p>
+      )}
+      {visibleFaqs.length > 0 && (
+        <div className="space-y-3">
+          {visibleFaqs.map((f) => (
+            <div
+              key={f.question}
+              className="rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              <h2 className="text-base font-bold">{f.question}</h2>
+              <div className="mt-2 rounded-xl bg-pink-50 p-3 text-sm leading-relaxed text-[#3a2230] dark:bg-neutral-800 dark:text-neutral-200">
+                <strong className="text-[#ec0a7a] dark:text-pink-300">Suggested solution: </strong>
+                {f.answer}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="space-y-6">
-        {order.map((t) => (
+        {visibleTopics.map((t) => (
           <ProblemCard key={t} topic={t} reviews={byTopic[t]} />
         ))}
       </div>
