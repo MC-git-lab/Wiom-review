@@ -181,6 +181,201 @@ const TOPIC_SOLUTIONS: Record<string, string> = {
     "If the app freezes during recharge/payment, force-close and retry, or recharge via the Wiom website as a fallback instead of the app. Report the crash with your device model so it can be fixed in an update.",
 };
 
+type FaqEntry = {
+  id: string;
+  title: string;
+  keywords: string[];
+  solution: string;
+};
+
+const FAQ_KB: FaqEntry[] = [
+  {
+    id: "speed",
+    title: "Speed/connectivity",
+    keywords: [
+      "speed", "slow", "slow internet", "slow wifi", "lag", "lagging", "buffering",
+      "connectivity", "connection drop", "disconnect", "disconnecting", "frequent disconnect",
+      "outage", "down", "internet down", "wifi down", "no internet", "no network",
+      "low speed", "speed issue", "mbps", "bandwidth", "router restart", "ont", "signal",
+      "weak signal", "range", "wifi range", "dead zone", "ping", "latency", "gaming lag",
+      "video buffering", "streaming issue", "intermittent",
+    ],
+    solution:
+      "Restart the router/ONT first; if speed still falls well below your plan's promised Mbps or outages recur, log a complaint through the app and ask for a technician visit. Push for downtime credit — Wiom has reportedly extended validity hours for filed outage complaints.",
+  },
+  {
+    id: "support",
+    title: "Customer support",
+    keywords: [
+      "customer support", "customer care", "support", "helpline", "call not answered",
+      "no response", "unresponsive", "complaint not resolved", "ticket", "escalate",
+      "escalation", "no reply", "rude", "rude behaviour", "rude staff", "agent",
+      "chat support", "live chat", "callback", "complaint status", "delay in response",
+      "email not getting reply", "no email reply", "phone not picked", "calls not picked",
+      "contact number", "support number", "wiom helpline number",
+    ],
+    solution:
+      "If calls aren't picked up or a complaint sits unresolved past 24-48 hours, escalate through the app's support chat and Wiom's official social media handles rather than re-calling the same number. Keep a written record (screenshots/ticket IDs) of every complaint.",
+  },
+  {
+    id: "installation",
+    title: "Installation",
+    keywords: [
+      "installation", "install", "installation delay", "technician not coming",
+      "technician visit", "new connection", "setup", "router not delivered",
+      "installation fee", "advance payment", "deposit", "installation charge",
+      "visit fee", "installation date", "delay in installation", "pending installation",
+      "wire", "cabling", "device installation", "onboarding",
+    ],
+    solution:
+      "Get the installation fee, timeline, and what's included (router, free vs. paid visit) confirmed in writing before paying anything in advance. If install is delayed beyond the promised window, request a refund of the advance/visit fee or escalate to cancel.",
+  },
+  {
+    id: "billing",
+    title: "Recharge & billing",
+    keywords: [
+      "recharge", "billing", "bill", "payment", "wrong amount deducted", "double charged",
+      "overcharged", "plan price", "billing cycle", "28 days", "auto debit",
+      "auto pay", "subscription", "plan change", "upgrade plan", "downgrade plan",
+      "refund", "money deducted", "payment failed", "transaction failed", "gst",
+      "invoice", "extra charge", "hidden charge", "plan renewal", "validity",
+      "recharge failed", "payment not reflecting", "wallet",
+    ],
+    solution:
+      "Double-check the plan price and billing cycle (it runs 28 days, not a full month) before recharging, and save the payment confirmation. If a wrong amount is deducted or a plan changes without consent, raise it immediately through the app rather than waiting for the next cycle.",
+  },
+  {
+    id: "appbugs",
+    title: "App bugs",
+    keywords: [
+      "app bug", "app crash", "app crashing", "app freeze", "app freezing", "app not working",
+      "app hangs", "login issue", "login failed", "otp not received", "otp issue",
+      "app update", "app slow", "app stuck", "white screen", "blank screen",
+      "app error", "force close", "app version", "play store app", "ui issue",
+      "loading forever", "app glitch",
+    ],
+    solution:
+      "If the app freezes during recharge/payment, force-close and retry, or recharge via the Wiom website as a fallback instead of the app. Report the crash with your device model so it can be fixed in an update.",
+  },
+  {
+    id: "contact-info",
+    title: "Finding contact details (email/phone number)",
+    keywords: [
+      "email", "email id", "email address", "phone number", "contact number",
+      "customer care number", "support email", "official email", "contact us",
+      "cant find email", "can't find phone number", "no contact info", "where to email",
+      "where to call", "company address", "registered office", "grievance officer",
+      "nodal officer", "complaint email", "support contact", "how to contact wiom",
+      "wiom email", "wiom phone number", "wiom contact",
+    ],
+    solution:
+      "Use the in-app \"Help & Support\" chat — it's the fastest verified channel. If you specifically need an email or phone number, check the app's Settings > Support/About section or the official Wiom website's Contact/Grievance page rather than searching generic web results, since unofficial numbers circulating online are often outdated or incorrect. For unresolved issues, the grievance/nodal officer details (required for ISPs) are listed on the website's legal/support page.",
+  },
+  {
+    id: "kyc",
+    title: "KYC / verification",
+    keywords: [
+      "kyc", "aadhar", "aadhaar", "verification", "id proof", "document upload",
+      "address proof", "kyc rejected", "kyc pending", "kyc failed", "identity verification",
+      "re-kyc", "document verification",
+    ],
+    solution:
+      "Make sure the uploaded ID photo is clear, well-lit, and matches the registered name/address exactly. If KYC is rejected repeatedly, raise it via in-app support with the document type used so an agent can manually review it instead of resubmitting blindly.",
+  },
+  {
+    id: "wifi-creds",
+    title: "WiFi name/password",
+    keywords: [
+      "wifi password", "wifi name", "ssid", "change password", "change wifi name",
+      "forgot wifi password", "default password", "reset wifi", "wifi credentials",
+      "router password", "admin password", "router login",
+    ],
+    solution:
+      "WiFi name and password can usually be changed from within the Wiom app under router/device settings. If the app doesn't show this option or changes don't apply, restart the router after saving and contact support if the SSID/password still doesn't update.",
+  },
+  {
+    id: "cancellation",
+    title: "Cancellation / deactivation",
+    keywords: [
+      "cancel connection", "cancellation", "deactivate", "disconnect service",
+      "discontinue", "stop service", "close account", "surrender device",
+      "return router", "cancellation fee", "early termination",
+    ],
+    solution:
+      "Request cancellation in writing through the app/support so there's a ticket trail, and ask for written confirmation of any device return process and final dues/refund before handing back the router. Note any lock-in or early-termination charges from your plan terms upfront.",
+  },
+  {
+    id: "device-hardware",
+    title: "Router/device hardware issues",
+    keywords: [
+      "router blinking", "led blinking", "red light", "device not working", "hardware issue",
+      "router not turning on", "device replacement", "warranty", "physical damage",
+      "router heating", "overheating", "device fault", "faulty router",
+    ],
+    solution:
+      "Note the LED light pattern (color/blink rate) and try a power cycle (unplug 30 seconds, replug) first. If the issue persists, raise a hardware replacement request through the app — devices are typically covered under service warranty as long as there's no physical/water damage.",
+  },
+];
+
+function searchFaq(query: string): FaqEntry[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const terms = q.split(/\s+/).filter(Boolean);
+  return FAQ_KB
+    .map((entry) => {
+      const haystack = (entry.title + " " + entry.keywords.join(" ")).toLowerCase();
+      let score = 0;
+      for (const term of terms) {
+        if (haystack.includes(term)) score += 1;
+      }
+      if (haystack.includes(q)) score += 2;
+      return { entry, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ entry }) => entry);
+}
+
+function FaqSearch() {
+  const [query, setQuery] = useState("");
+  const results = useMemo(() => searchFaq(query), [query]);
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+      <label htmlFor="faq-search" className="text-sm font-bold">
+        Search a problem (e.g. "slow wifi", "can't find phone number", "kyc rejected")
+      </label>
+      <input
+        id="faq-search"
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Type keywords describing your issue..."
+        className="w-full rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#ec0a7a] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+      />
+      {query.trim() && (
+        <div className="space-y-3 pt-1">
+          {results.length === 0 ? (
+            <p className="text-sm text-[#8a5570] dark:text-neutral-400">
+              No matching suggestion found. Try different keywords or check Customer support below.
+            </p>
+          ) : (
+            results.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-xl bg-pink-50 p-3 text-sm leading-relaxed text-[#3a2230] dark:bg-neutral-800 dark:text-neutral-200"
+              >
+                <strong className="text-[#ec0a7a] dark:text-pink-300">{r.title}: </strong>
+                {r.solution}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
   const byTopic = useMemo(() => {
     const map: Record<string, Review[]> = {};
@@ -201,6 +396,7 @@ function ProblemsAndSolutions({ reviews }: { reviews: Review[] }) {
       <p className="text-sm text-[#8a5570] dark:text-neutral-400">
         Negative reviews grouped by topic, with the most common complaints and a suggested way to handle each one.
       </p>
+      <FaqSearch />
       <div className="space-y-6">
         {order.map((t) => (
           <ProblemCard key={t} topic={t} reviews={byTopic[t]} />
